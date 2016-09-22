@@ -77,7 +77,7 @@ function whoison_tcp_port() {
   local tool=''
   if [[ "$OSTYPE" =~ ^darwin ]]; then
     if tool=$(which lsof); then
-      "$tool" -i ":$pn" -a '-sTCP:LISTEN' -F p | cut -c 2-
+      "$tool" -i ":$pn" -a '-sTCP:LISTEN' -F p | egrep '^p' | cut -c 2-
     else
       die "Can't find lsof in \$PATH"
       return 1
