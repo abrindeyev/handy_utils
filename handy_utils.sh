@@ -84,7 +84,7 @@ function whoison_tcp_port() {
     fi
   elif [[ "$OSTYPE" =~ ^linux-gnu ]]; then
     if tool=$(which ss); then
-      "$tool" -tpln sport eq ":$pn"
+      "$tool" -tpln sport eq ":$pn" | egrep ^LISTEN | sed 's/^.*users:(\(.*\))/\1/; s/([^,]\+,\([0-9]\+\),[0-9]\+)/\1/g; s/,/\n/g'
     else
       die "Can't find ss in \$PATH"
       return 1
@@ -107,7 +107,7 @@ function whatports_pid_listening_on() {
     fi
   elif [[ "$OSTYPE" =~ ^linux-gnu ]]; then
     if tool=$(which ss); then
-      "$tool" -tpln sport eq ":$pn"
+      "$tool" -tpln sport eq ":$pn" | egrep ^LISTEN | sed 's/^.*users:(\(.*\))/\1/; s/([^,]\+,\([0-9]\+\),[0-9]\+)/\1/g; s/,/\n/g'
     else
       die "Can't find ss in \$PATH"
       return 1
