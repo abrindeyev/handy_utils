@@ -122,6 +122,7 @@ function list_all_mongos() {
   local pids=$(pgrep 'mongo(s|d)')
   [[ $? -ne 0 ]] && { die "No mongo(s|d) processes were found by pgrep"; return 1; }
   local -a pids_array=($pids)
+  [[ ${#pids_array[@]} -eq 0 ]] && { die "No mongo(s|d) processes were found by pgrep"; return 1; }
   ps -p "$( join , "${pids_array[@]}" )" -o pid,command
 }
 
