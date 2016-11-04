@@ -118,7 +118,7 @@ function whatports_pid_listening_on() {
   fi
 }
 
-function list_all_mongos() {
+function list_all_mongox() {
   local pids=$(pgrep 'mongo(s|d)')
   [[ $? -ne 0 ]] && { die "No mongo(s|d) processes were found by pgrep"; return 1; }
   local -a pids_array=($pids)
@@ -169,11 +169,52 @@ function kill_mongo_on_port() {
   done
 }
 
-function kill_all_mongos() {
+function kill_all_mongox() {
   local pids=$(pgrep 'mongo(s|d)')
-  [[ -n $pids ]] || { echo "No MongoDB processes are currently running"; return 1; }
+  [[ -n $pids ]] || { die "No MongoDB processes are currently running"; return 1; }
   for pid in "${pids[@]}"; do
     log_debug "Killing PID $pid"
     kill $pid
   done
+}
+
+function __get_last_active_ticket_directory() {
+  local last_ticket=$(ls -1tr "${SFSC_DIR:-$HOME/SFSC}" | tail -n1)
+  printf "${SFSC_DIR:-$HOME/SFSC}/${last_ticket}"
+}
+
+function lcd() {
+  cd "$(__get_last_active_ticket_directory)"
+}
+
+function move_fresh_meat() {
+  local dl_dir="$HOME/Downloads"
+  local dest_dir="$HOME/SFSC"
+  if   [[ $# -eq 0 ]]; then
+    local mv_dir="${dest_dir}/$(ls -1tr "$dest_dir" | tail -n1)"
+    local number_of_files_to_move=1
+  elif [[ $# -eq 1 && ${#1} -lt 3 ]]; then
+    # single argument and it looks like number of files rather then ticket number
+    local mv_dir="${dest_dir}/$(ls -1tr "$dest_dir" | tail -n1)"
+    local number_of_files_to_move="$2"
+  elif [[ $# -eq 1 ]]; then
+    # single argument and since it length is greater then X, it's probably a ticket number
+    local mv_dir="$dest_dir/$1"
+    local number_of_files_to_move=1
+  elif [[ $# -eq 2 ]]; then
+    local mv_dir="$dest_dir/$1"
+    local number_of_files_to_move="$2"
+    [[ $number_of_files_to_move = *[^0-9]* ]] && { die "Number of files to move (2nd argument) must be a numeric value"; return 1; }
+  else
+    die "Unsupported number of arguments: $#"
+    return 1
+  fi
+  [[ -d "$mv_dir" ]] || mkdir -p "$mv_dir" || { die "Can't create $mv_dir directory"; return 1; }
+  for count in $(seq $number_of_files_to_move); do
+    local file_to_move="$dl_dir/$(ls -1tr "$dl_dir" | tail -n1)"
+    [[ -f "$file_to_move" ]] || { die "Can't locate file to move: $file_to_move"; return 1; }
+    mv "$file_to_move" "$mv_dir" || { die "Failed to move $file_to_move to $mv_dir directory"; return 1; }
+  done
+  echo "Successfully moved $number_of_files_to_move recent files to $mv_dir directory"
+  cd $mv_dir || { die "Can't cd into $mv_dir"; return 1; }
 }
