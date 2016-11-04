@@ -196,7 +196,7 @@ function move_fresh_meat() {
   elif [[ $# -eq 1 && ${#1} -lt 3 ]]; then
     # single argument and it looks like number of files rather then ticket number
     local mv_dir="${dest_dir}/$(ls -1tr "$dest_dir" | tail -n1)"
-    local number_of_files_to_move="$2"
+    local number_of_files_to_move="$1"
   elif [[ $# -eq 1 ]]; then
     # single argument and since it length is greater then X, it's probably a ticket number
     local mv_dir="$dest_dir/$1"
