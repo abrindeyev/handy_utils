@@ -50,6 +50,10 @@ function log_debug() {
   fi
 }
 
+function log_info() {
+  log2stderr "[INFO] $@"
+}
+
 function die() {
   log_error_lib "$*"
   if in_interactive_shell; then
