@@ -206,8 +206,22 @@ function move_fresh_meat() {
     local mv_dir="$dest_dir/$1"
     local number_of_files_to_move=1
   elif [[ $# -eq 2 ]]; then
-    local mv_dir="$dest_dir/$1"
-    local number_of_files_to_move="$2"
+    if [[ ${#1} -lt 4 && ${#2} -gt 4 ]]; then
+      # two arguments:
+      # first one is looks like a number of files
+      # second is looks like a ticket number
+      local number_of_files_to_move="$1"
+      local mv_dir="$dest_dir/$2"
+    elif [[ ${#1} -gt 4 && ${#1} -lt 4 ]]; then
+      # two arguments:
+      # first one is looks like a ticket number
+      # second is looks like a number of files
+      local mv_dir="$dest_dir/$1"
+      local number_of_files_to_move="$2"
+    else
+      log_error "Should never reach here! Check length of the arguments: ticket number_of_files OR number_of_files ticket"
+      return 1
+    fi
     [[ $number_of_files_to_move = *[^0-9]* ]] && { die "Number of files to move (2nd argument) must be a numeric value"; return 1; }
   else
     die "Unsupported number of arguments: $#"
