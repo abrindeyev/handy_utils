@@ -212,7 +212,7 @@ function move_fresh_meat() {
       # second is looks like a ticket number
       local number_of_files_to_move="$1"
       local mv_dir="$dest_dir/$2"
-    elif [[ ${#1} -gt 4 && ${#1} -lt 4 ]]; then
+    elif [[ ${#1} -gt 4 && ${#2} -lt 4 ]]; then
       # two arguments:
       # first one is looks like a ticket number
       # second is looks like a number of files
