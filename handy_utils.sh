@@ -236,3 +236,22 @@ function move_fresh_meat() {
   echo "Successfully moved $number_of_files_to_move recent files to $mv_dir directory"
   cd $mv_dir || { die "Can't cd into $mv_dir"; return 1; }
 }
+
+function runyara {
+  yara -gfsem ~/src/support-tools/yara/mongodlog.yar "$1" | grep -E 'default|detected' | sed -e 's/^default/\'$'\ndefault/'
+}
+
+function mdiag_get_file {
+  local mdiag="$1"
+  local fn="$2"
+  if [[ -f "$1" ]]; then
+    if [[ -n $2 ]]; then
+      jq -r '.[] | select(.subsection == "'$2'") | .content[]' "$1"
+    else
+      # get list of captured files inside
+      jq -r '.[] | select(has("subsection")) | .subsection ' "$1" | egrep '^/' | sort
+    fi
+  else
+    die "Usage:\nTo list all captured files inside: mdiag_get_file mdiag.json\nTo get file: mdiag_get_file mdiag.json /etc/nsswitch.conf"
+  fi
+}
