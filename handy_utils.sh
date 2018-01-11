@@ -255,3 +255,12 @@ function mdiag_get_file {
     die "Usage:\nTo list all captured files inside: mdiag_get_file mdiag.json\nTo get file: mdiag_get_file mdiag.json /etc/nsswitch.conf"
   fi
 }
+
+function mdiag_get_dmesg {
+  local mdiag="$1"
+  if [[ -f "$1" ]]; then
+    jq -r '.[] | select(.section == "dmesg") | .output[]' "$mdiag"
+  else
+    die "Usage: mdiag_get_dmesg mdiag.json"
+  fi
+}
