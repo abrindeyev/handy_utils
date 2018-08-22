@@ -188,12 +188,22 @@ function __get_last_active_ticket_directory() {
 }
 
 function lcd() {
-  cd "$(__get_last_active_ticket_directory)"
+  if   [[ $# -eq 0 ]]; then
+    cd "$(__get_last_active_ticket_directory)"
+  else
+    local case_directory="${SFSC_DIR:-$HOME/SFSC}/$1"
+    if [[ -d $case_directory ]]; then
+      touch "$case_directory"
+      cd "$case_directory"
+    else
+      die "The directory for case $1 doesn't exist"
+    fi
+  fi
 }
 
 function move_fresh_meat() {
   local dl_dir="$HOME/Downloads"
-  local dest_dir="$HOME/SFSC"
+  local dest_dir="${SFSC_DIR:-$HOME/SFSC}"
   if   [[ $# -eq 0 ]]; then
     local mv_dir="${dest_dir}/$(ls -1tr "$dest_dir" | tail -n1)"
     local number_of_files_to_move=1
@@ -231,6 +241,7 @@ function move_fresh_meat() {
   for count in $(seq $number_of_files_to_move); do
     local file_to_move="$dl_dir/$(ls -1tr "$dl_dir" | tail -n1)"
     [[ -f "$file_to_move" ]] || { die "Can't locate file to move: $file_to_move"; return 1; }
+    [[ "$file_to_move" =~ /Unconfirmed[[:blank:]][[:digit:]]+.crdownload$ ]] && { die "File $file_to_move is still downloading by Chrome. $((count-1)) file(s) were moved"; return 1; }
     mv "$file_to_move" "$mv_dir" || { die "Failed to move $file_to_move to $mv_dir directory"; return 1; }
   done
   echo "Successfully moved $number_of_files_to_move recent files to $mv_dir directory"
@@ -262,5 +273,14 @@ function mdiag_get_dmesg {
     jq -r '.[] | select(.section == "dmesg") | .output[]' "$mdiag"
   else
     die "Usage: mdiag_get_dmesg mdiag.json"
+  fi
+}
+
+function mdiag_get_df {
+  local mdiag="$1"
+  if [[ -f "$1" ]]; then
+    jq -r '.[] | select(.section == "df-h") | .output[]' "$mdiag"
+  else
+    die "Usage: mdiag_get_df mdiag.json"
   fi
 }
