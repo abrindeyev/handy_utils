@@ -267,6 +267,15 @@ function mdiag_get_file {
   fi
 }
 
+function mdiag_get_ulimit {
+  local mdiag="$1"
+  if [[ -f "$1" ]]; then
+    jq -r '.[] | select(.section == "ulimit") | .output[]' "$mdiag"
+  else
+    die "Usage: mdiag_get_ulimit mdiag.json"
+  fi
+}
+
 function mdiag_get_dmesg {
   local mdiag="$1"
   if [[ -f "$1" ]]; then
