@@ -191,12 +191,18 @@ function lcd() {
   if   [[ $# -eq 0 ]]; then
     cd "$(__get_last_active_ticket_directory)"
   else
-    local case_directory="${SFSC_DIR:-$HOME/SFSC}/$1"
+    local case_number="$1"
+    if [[ $case_number =~ ^https://support.mongodb.com/case/ ]]; then
+      local case_directory="${SFSC_DIR:-$HOME/SFSC}/${case_number#https://support.mongodb.com/case/}"
+    else
+      local case_directory="${SFSC_DIR:-$HOME/SFSC}/$case_number"
+    fi
     if [[ -d $case_directory ]]; then
       touch "$case_directory"
       cd "$case_directory"
     else
-      die "The directory for case $1 doesn't exist"
+      mkdir "$case_directory" || { die "Can't create $case_directory directory"; return 1; }
+      cd "$case_directory" || { die "Can't change to $case_directory directory"; return 1; }
     fi
   fi
 }
