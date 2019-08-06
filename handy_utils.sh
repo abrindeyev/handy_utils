@@ -205,15 +205,15 @@ function move_fresh_meat() {
   local dl_dir="$HOME/Downloads"
   local dest_dir="${SFSC_DIR:-$HOME/SFSC}"
   if   [[ $# -eq 0 ]]; then
-    local mv_dir="${dest_dir}/$(ls -1tr "$dest_dir" | tail -n1)"
+    local case_number="$(ls -1tr "$dest_dir" | tail -n1)"
     local number_of_files_to_move=1
   elif [[ $# -eq 1 && ${#1} -lt 4 ]]; then
     # single argument and it looks like number of files rather then ticket number
-    local mv_dir="${dest_dir}/$(ls -1tr "$dest_dir" | tail -n1)"
+    local case_number="$(ls -1tr "$dest_dir" | tail -n1)"
     local number_of_files_to_move="$1"
   elif [[ $# -eq 1 ]]; then
     # single argument and since it length is greater then X, it's probably a ticket number
-    local mv_dir="$dest_dir/$1"
+    local case_number="$1"
     local number_of_files_to_move=1
   elif [[ $# -eq 2 ]]; then
     if [[ ${#1} -lt 4 && ${#2} -gt 4 ]]; then
@@ -221,12 +221,12 @@ function move_fresh_meat() {
       # first one is looks like a number of files
       # second is looks like a ticket number
       local number_of_files_to_move="$1"
-      local mv_dir="$dest_dir/$2"
+      local case_number="$2"
     elif [[ ${#1} -gt 4 && ${#2} -lt 4 ]]; then
       # two arguments:
       # first one is looks like a ticket number
       # second is looks like a number of files
-      local mv_dir="$dest_dir/$1"
+      local case_number="$1"
       local number_of_files_to_move="$2"
     else
       log_error "Should never reach here! Check length of the arguments: ticket number_of_files OR number_of_files ticket"
@@ -237,6 +237,12 @@ function move_fresh_meat() {
     die "Unsupported number of arguments: $#"
     return 1
   fi
+  if [[ $case_number =~ ^https://support.mongodb.com/case/ ]]; then
+    local mv_dir="$dest_dir/${case_number#https://support.mongodb.com/case/}"
+  else
+    local mv_dir="$dest_dir/$case_number"
+  fi
+  [[ -f "$mv_dir" ]] && { die "The $mv_dir already exists and is a file"; return 1; }
   [[ -d "$mv_dir" ]] || mkdir -p "$mv_dir" || { die "Can't create $mv_dir directory"; return 1; }
   for count in $(seq $number_of_files_to_move); do
     local file_to_move="$dl_dir/$(ls -1tr "$dl_dir" | tail -n1)"
