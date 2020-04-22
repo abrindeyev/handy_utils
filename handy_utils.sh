@@ -269,10 +269,10 @@ function mdiag_get_file {
   local fn="$2"
   if [[ -f "$1" ]]; then
     if [[ -n $2 ]]; then
-      jq -r '.[] | select(.subsection == "'$2'") | .content[]' "$1"
+      cat "$1" | sed 's/[^[:print:]\r\t]/ /g' | jq -r '.[] | select(.subsection == "'$2'") | .content[]'
     else
       # get list of captured files inside
-      jq -r '.[] | select(has("subsection")) | .subsection ' "$1" | egrep '^/' | sort
+      cat "$1" | sed 's/[^[:print:]\r\t]/ /g' | jq -r '.[] | select(has("subsection")) | .subsection ' | egrep '^/' | sort
     fi
   else
     die "Usage:\nTo list all captured files inside: mdiag_get_file mdiag.json\nTo get file: mdiag_get_file mdiag.json /etc/nsswitch.conf"
@@ -281,8 +281,8 @@ function mdiag_get_file {
 
 function mdiag_get_ulimit {
   local mdiag="$1"
-  if [[ -f "$1" ]]; then
-    jq -r '.[] | select(.section == "ulimit") | .output[]' "$mdiag"
+  if [[ -f "$mdiag" ]]; then
+    cat "$mdiag" | sed 's/[^[:print:]\r\t]/ /g' | jq -r '.[] | select(.section == "ulimit") | .output[]'
   else
     die "Usage: mdiag_get_ulimit mdiag.json"
   fi
@@ -291,10 +291,17 @@ function mdiag_get_ulimit {
 function mdiag_get_dmesg {
   local mdiag="$1"
   if [[ -f "$1" ]]; then
-    jq -r '.[] | select(.section == "dmesg") | .output[]' "$mdiag"
+    cat "$mdiag" | sed 's/[^[:print:]\r\t]/ /g' | jq -r '.[] | select(.section == "dmesg") | .output[]'
   else
     die "Usage: mdiag_get_dmesg mdiag.json"
   fi
+}
+
+function mdiag_get_dmesg_with_timestamps {
+  local mdiag="$1"
+  local uptime="$(mdiag_get_file "$mdiag" /proc/uptime | cut -d' ' -f1)"
+  local uptime_grabbed="$(cat "$mdiag" | sed 's/[^[:print:]\r\t]/ /g' | jq -r '.[] | select(.subsection == "/proc/uptime") | .ts["$date"]')"
+  mdiag_get_dmesg "$mdiag" | ruby -rdate -pe 'BEGIN {uptime_grabbed_at = DateTime.iso8601("'$uptime_grabbed'").to_time; uptime_value = "'$uptime'".to_f; boot_time = uptime_grabbed_at - uptime_value;}; gsub(/^\[\s*([0-9]+\.[0-9]{6})\]/){ (boot_time+$1.to_f).strftime("%Y-%m-%dT%H:%M:%S.%6N%z") }'
 }
 
 function mdiag_get_df {
