@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+jq '.shards | map_values(.wiredTiger["block-manager"]["file bytes available for reuse"]/.wiredTiger["block-manager"]["file size in bytes"]*100)'

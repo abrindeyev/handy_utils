@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# Args:
+# stdin: mongod log
+# arg1: period_start (copy&paste from t2)
+# arg2: period_end   (copy&paste from t2)
+
+my_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+$my_dir/json_slow_ops_full.rb | sort -n | jq -c --arg start_p "$1" --arg end_p "$2" '(($start_p[0:-5]+"Z")|fromdate) as $start_date | (($end_p[0:-5]+"Z")|fromdate) as $end_date | select( (((.st[0:-10]+"Z")|fromdate) >= $start_date) and (((.t["$date"][0:-10]+"Z")|fromdate) <= $end_date) and .msg=="Slow query" )'

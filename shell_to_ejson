@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+temp_file="$(mktemp)"
+echo -n "const cmdOut = " >> "$temp_file"
+cat "$1" >> "$temp_file"
+echo "" >> "$temp_file"
+echo 'print(EJSON.stringify(cmdOut,null,2))' >> "$temp_file"
+mv "$temp_file" "$temp_file.js"
+mongosh --quiet --nodb "$temp_file.js"
+rm -f "$temp_file.js"

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+jq -rs 'map(select(.attr.storage.data.bytesRead==null | not)) | {"total bytes read": (reduce .[] as $q (0; . + $q.attr.storage.data.bytesRead)), "query count": length, "docs examined": (reduce .[] as $q (0; . + $q.attr.docsExamined))}'
